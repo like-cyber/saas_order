@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS管理后台 - 订单管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+                'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 240px;
+            background: #fff;
+            box-shadow: 2px 0 8px 0 rgba(29, 35, 41, 0.05);
+            position: fixed;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            height: 64px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1890ff;
+        }
+
+        .sidebar-menu {
+            padding: 16px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: #595959;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .menu-item-icon {
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .menu-group {
+            margin-bottom: 8px;
+        }
+
+        .menu-group-title {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: #262626;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-group-title:hover {
+            background-color: #f5f5f5;
+        }
+
+        .menu-group-icon {
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .menu-group-arrow {
+            margin-left: auto;
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+
+        .menu-group.expanded .menu-group-arrow {
+            transform: rotate(90deg);
+        }
+
+        .menu-submenu {
+            background-color: #fafafa;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .menu-submenu.collapsed {
+            max-height: 0;
+        }
+
+        .menu-submenu.expanded {
+            max-height: 200px;
+        }
+
+        .submenu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 24px 10px 52px;
+            color: #595959;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .submenu-item:hover, .submenu-item.active {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .main-content {
+            margin-left: 240px;
+            flex: 1;
+        }
+
+        .header {
+            height: 64px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            box-shadow: 0 1px 4px rgba(0,21,41,.08);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1890ff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 8px;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .page-header {
+            background: #fff;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #262626;
+            margin: 0;
+        }
+
+        .content-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        .btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+            color: white;
+        }
+
+        .table-section {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #262626;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+        }
+
+        .table tr:hover {
+            background: #fafafa;
+        }
+
+        .status-tag {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fff7e6;
+            color: #d46b08;
+            border: 1px solid #ffd591;
+        }
+
+        .status-completed {
+            background: #f6ffed;
+            color: #389e0d;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-cancelled {
+            background: #fff2f0;
+            color: #cf1322;
+            border: 1px solid #ffccc7;
+        }
+
+        .status-processing {
+            background: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-link {
+            background: none;
+            border: none;
+            color: #1890ff;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .btn-link:hover {
+            background: #e6f7ff;
+        }
+
+        .btn-danger {
+            color: #ff4d4f;
+        }
+
+        .btn-danger:hover {
+            background: #fff2f0;
+        }
+
+        .pagination {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        /* 复选框样式 */
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* 禁用状态的按钮样式 */
+        .btn:disabled {
+            background: #f5f5f5;
+            color: #bfbfbf;
+            border-color: #d9d9d9;
+            cursor: not-allowed;
+        }
+
+        .btn-primary:disabled {
+            background: #f5f5f5;
+            color: #bfbfbf;
+            border-color: #d9d9d9;
+        }
+
+        /* 选择计数样式 */
+        #selectedCount {
+            font-weight: 500;
+        }
+
+        /* 文字链接样式 */
+        .text-link {
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .text-link:hover {
+            color: #40a9ff;
+            text-decoration: underline;
+        }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 520px;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #262626;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #8c8c8c;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #262626;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #262626;
+            font-weight: 500;
+        }
+
+        .form-label .required {
+            color: #ff4d4f;
+            margin-left: 4px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .radio-item input[type="radio"] {
+            margin: 0;
+        }
+
+        .radio-item label {
+            cursor: pointer;
+            font-size: 14px;
+            color: #595959;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .form-input:disabled {
+            background-color: #f5f5f5;
+            color: #8c8c8c;
+            cursor: not-allowed;
+            border-color: #d9d9d9;
+        }
+
+        .form-input:disabled::placeholder {
+            color: #bfbfbf;
+        }
+
+        .expandable-section {
+            margin-top: 16px;
+        }
+
+        .expand-trigger {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1890ff;
+            cursor: pointer;
+            font-size: 14px;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .expand-trigger:hover {
+            color: #40a9ff;
+        }
+
+        .expand-content {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .expand-content.show {
+            display: block;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            background: white;
+            color: #595959;
+            border: 1px solid #d9d9d9;
+        }
+
+        .btn-cancel:hover {
+            color: #262626;
+            border-color: #40a9ff;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .filter-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                SaaS管理后台
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-group expanded">
+                    <div class="menu-group-title" onclick="toggleMenuGroup(this)">
+                        <span class="menu-group-icon">🛒</span>
+                        订单管理
+                        <span class="menu-group-arrow">▶</span>
+                    </div>
+                    <div class="menu-submenu expanded">
+                        <div class="submenu-item active" onclick="showOrderPage()">
+                            订单记录
+                        </div>
+                        <div class="submenu-item" onclick="showInvoicePage()">
+                            发票管理
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 顶部导航 -->
+            <div class="header">
+                <div></div>
+                <div class="user-info">
+                    <div class="avatar">A</div>
+                    <span>admin</span>
+                </div>
+            </div>
+
+            <!-- 内容区域 -->
+            <div class="content">
+                <!-- 订单记录页面 -->
+                <div id="orderPage">
+                    <div class="content-card">
+                        <div style="padding: 16px 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: flex-end; align-items: center;">
+                            <button class="btn btn-primary" onclick="applyContract()">申请合同</button>
+                        </div>
+                        <div class="table-section">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>订单号</th>
+                                        <th>产品名称</th>
+                                        <th>账号数量</th>
+                                        <th>购买时长</th>
+                                        <th>订单类型</th>
+                                        <th>支付时间</th>
+                                        <th>支付方式</th>
+                                        <th>支付状态</th>
+                                        <th>订单金额</th>
+                                        <th>发货状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>ORD-2026-001</td>
+                                        <td>专业版</td>
+                                        <td>100个</td>
+                                        <td>12个月</td>
+                                        <td><span class="status-tag" style="background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;">新购</span></td>
+                                        <td>2026-01-20 10:30:00</td>
+                                        <td>支付宝</td>
+                                        <td><span class="status-tag status-completed">已支付</span></td>
+                                        <td>¥9999.00</td>
+                                        <td><span class="status-tag status-completed">已发货</span></td>
+                                        <td>
+                                            <button class="btn-link" onclick="openInvoice('ORD-2026-001')">开发票</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>ORD-2026-002</td>
+                                        <td>专业版</td>
+                                        <td>50个</td>
+                                        <td>6个月</td>
+                                        <td><span class="status-tag" style="background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;">新购</span></td>
+                                        <td>-</td>
+                                        <td>微信支付</td>
+                                        <td><span class="status-tag status-pending">待支付</span></td>
+                                        <td>¥4999.00</td>
+                                        <td><span class="status-tag status-pending">待发货</span></td>
+                                        <td>
+                                            <button class="btn-link" onclick="goPay('ORD-2026-002')">去支付</button>
+                                            <button class="btn-link btn-danger" onclick="cancelOrder('ORD-2026-002')">取消订单</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>ORD-2026-003</td>
+                                        <td>专业版</td>
+                                        <td>20个</td>
+                                        <td>3个月</td>
+                                        <td><span class="status-tag status-completed">续费</span></td>
+                                        <td>-</td>
+                                        <td>银行转账</td>
+                                        <td><span class="status-tag status-cancelled">已取消</span></td>
+                                        <td>¥1999.00</td>
+                                        <td><span class="status-tag status-cancelled">已取消</span></td>
+                                        <td>-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>ORD-2026-004</td>
+                                        <td>专业版</td>
+                                        <td>200个</td>
+                                        <td>12个月</td>
+                                        <td><span class="status-tag status-completed">续费</span></td>
+                                        <td>2026-01-19 16:45:00</td>
+                                        <td>支付宝</td>
+                                        <td><span class="status-tag status-completed">已支付</span></td>
+                                        <td>¥19999.00</td>
+                                        <td><span class="status-tag status-completed">已发货</span></td>
+                                        <td>
+                                            <button class="btn-link" onclick="openInvoice('ORD-2026-004')">开发票</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>ORD-2026-005</td>
+                                        <td>专业版</td>
+                                        <td>80个</td>
+                                        <td>6个月</td>
+                                        <td><span class="status-tag" style="background: #f9f0ff; color: #722ed1; border: 1px solid #d3adf7;">升级</span></td>
+                                        <td>2026-01-18 09:30:00</td>
+                                        <td>微信支付</td>
+                                        <td><span class="status-tag status-completed">已支付</span></td>
+                                        <td>¥7999.00</td>
+                                        <td><span class="status-tag status-processing">发货中</span></td>
+                                        <td>-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination">
+                            <div>第 1-5 条/总共 5 条</div>
+                            <div>
+                                <button class="btn">上一页</button>
+                                <button class="btn btn-primary">1</button>
+                                <button class="btn">下一页</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 发票管理页面 -->
+                <div id="invoicePage" style="display: none;">
+                    <div class="content-card">
+                        <div style="padding: 16px 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span id="selectedCount" style="color: #666; font-size: 14px;">已选择 0 项</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <a href="#" onclick="showInvoiceRecordsPage()" class="text-link">开票记录</a>
+                                <button class="btn btn-primary" id="batchInvoiceBtn" disabled onclick="batchInvoice()">批量开发票</button>
+                            </div>
+                        </div>
+                        <div class="table-section">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px;">
+                                            <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                                        </th>
+                                        <th>订单号</th>
+                                        <th>账号数量</th>
+                                        <th>购买时长</th>
+                                        <th>下单时间</th>
+                                        <th>金额</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="order-checkbox" value="ORD-2026-001" onchange="updateSelection()">
+                                        </td>
+                                        <td>ORD-2026-001</td>
+                                        <td>100个</td>
+                                        <td>12个月</td>
+                                        <td>2026-01-20 10:30:00</td>
+                                        <td>¥9,999.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="order-checkbox" value="ORD-2026-002" onchange="updateSelection()">
+                                        </td>
+                                        <td>ORD-2026-002</td>
+                                        <td>50个</td>
+                                        <td>6个月</td>
+                                        <td>2026-01-19 14:20:00</td>
+                                        <td>¥4,999.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="order-checkbox" value="ORD-2026-003" onchange="updateSelection()">
+                                        </td>
+                                        <td>ORD-2026-003</td>
+                                        <td>20个</td>
+                                        <td>3个月</td>
+                                        <td>2026-01-18 16:45:00</td>
+                                        <td>¥1,999.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="order-checkbox" value="ORD-2026-004" onchange="updateSelection()">
+                                        </td>
+                                        <td>ORD-2026-004</td>
+                                        <td>200个</td>
+                                        <td>12个月</td>
+                                        <td>2026-01-17 09:30:00</td>
+                                        <td>¥19,999.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="order-checkbox" value="ORD-2026-005" onchange="updateSelection()">
+                                        </td>
+                                        <td>ORD-2026-005</td>
+                                        <td>80个</td>
+                                        <td>6个月</td>
+                                        <td>2026-01-16 11:15:00</td>
+                                        <td>¥7,999.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="order-checkbox" value="ORD-2026-006" onchange="updateSelection()">
+                                        </td>
+                                        <td>ORD-2026-006</td>
+                                        <td>150个</td>
+                                        <td>24个月</td>
+                                        <td>2026-01-15 13:40:00</td>
+                                        <td>¥29,999.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="order-checkbox" value="ORD-2026-007" onchange="updateSelection()">
+                                        </td>
+                                        <td>ORD-2026-007</td>
+                                        <td>30个</td>
+                                        <td>6个月</td>
+                                        <td>2026-01-14 15:25:00</td>
+                                        <td>¥2,999.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" class="order-checkbox" value="ORD-2026-008" onchange="updateSelection()">
+                                        </td>
+                                        <td>ORD-2026-008</td>
+                                        <td>120个</td>
+                                        <td>12个月</td>
+                                        <td>2026-01-13 10:10:00</td>
+                                        <td>¥11,999.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination">
+                            <div>第 1-8 条/总共 8 条</div>
+                            <div>
+                                <button class="btn">上一页</button>
+                                <button class="btn btn-primary">1</button>
+                                <button class="btn">下一页</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 开票记录页面 -->
+                <div id="invoiceRecordsPage" style="display: none;">
+                    <div class="content-card">
+                        <div style="padding: 16px 24px; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+                            <button class="btn" onclick="backToInvoicePage()">← 返回</button>
+                        </div>
+                        <div class="table-section">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>抬头名称</th>
+                                        <th>抬头类型</th>
+                                        <th>开票时间</th>
+                                        <th>开票状态</th>
+                                        <th>发票金额</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>北京科技有限公司</td>
+                                        <td><span class="status-tag" style="background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;">企业</span></td>
+                                        <td>2026-01-20 14:30:00</td>
+                                        <td><span class="status-tag status-completed">开票成功</span></td>
+                                        <td>¥9,999.00</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-link" onclick="resendInvoice('INV-2026-001')">重发发票</button>
+                                                <button class="btn-link" onclick="applyVoidReissue('INV-2026-001')">申请作废重开</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>上海贸易有限公司</td>
+                                        <td><span class="status-tag" style="background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;">企业</span></td>
+                                        <td>2026-01-19 16:45:00</td>
+                                        <td><span class="status-tag status-completed">开票成功</span></td>
+                                        <td>¥19,999.00</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-link" onclick="resendInvoice('INV-2026-002')">重发发票</button>
+                                                <button class="btn-link" onclick="applyVoidReissue('INV-2026-002')">申请作废重开</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>深圳创新科技有限公司</td>
+                                        <td><span class="status-tag" style="background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;">企业</span></td>
+                                        <td>2026-01-18 10:20:00</td>
+                                        <td><span class="status-tag status-processing">开票中</span></td>
+                                        <td>¥7,999.00</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <span style="color: #8c8c8c;">处理中...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>广州教育机构</td>
+                                        <td><span class="status-tag" style="background: #f9f0ff; color: #722ed1; border: 1px solid #d3adf7;">组织</span></td>
+                                        <td>2026-01-17 11:15:00</td>
+                                        <td><span class="status-tag status-completed">开票成功</span></td>
+                                        <td>¥4,999.00</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-link" onclick="resendInvoice('INV-2026-003')">重发发票</button>
+                                                <button class="btn-link" onclick="applyVoidReissue('INV-2026-003')">申请作废重开</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>张三</td>
+                                        <td><span class="status-tag" style="background: #fff7e6; color: #d46b08; border: 1px solid #ffd591;">个人</span></td>
+                                        <td>2026-01-16 09:30:00</td>
+                                        <td><span class="status-tag status-cancelled">开票失败</span></td>
+                                        <td>¥2,999.00</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-link" onclick="applyVoidReissue('INV-2026-004')">申请作废重开</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>杭州互联网有限公司</td>
+                                        <td><span class="status-tag" style="background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;">企业</span></td>
+                                        <td>2026-01-15 15:45:00</td>
+                                        <td><span class="status-tag status-completed">开票成功</span></td>
+                                        <td>¥11,999.00</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button class="btn-link" onclick="resendInvoice('INV-2026-005')">重发发票</button>
+                                                <button class="btn-link" onclick="applyVoidReissue('INV-2026-005')">申请作废重开</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination">
+                            <div>第 1-6 条/总共 6 条</div>
+                            <div>
+                                <button class="btn">上一页</button>
+                                <button class="btn btn-primary">1</button>
+                                <button class="btn">下一页</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 发票信息弹窗 -->
+    <div class="modal-overlay" id="invoiceModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span>📄</span>
+                    发票信息
+                </div>
+                <button class="modal-close" onclick="closeInvoiceModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="invoiceForm">
+                    <!-- 抬头类型 -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            抬头类型<span class="required">*</span>
+                        </label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="enterprise" name="headerType" value="enterprise" checked onchange="toggleInvoiceType()">
+                                <label for="enterprise">企业</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="organization" name="headerType" value="organization" onchange="toggleInvoiceType()">
+                                <label for="organization">组织</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="personal" name="headerType" value="personal" onchange="toggleInvoiceType()">
+                                <label for="personal">个人</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 发票类型 -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            发票类型<span class="required">*</span>
+                        </label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="general" name="invoiceType" value="general" checked>
+                                <label for="general">增值税普通发票（电票）</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="special" name="invoiceType" value="special" onchange="checkSpecialInvoice()">
+                                <label for="special">增值税专用发票（专票）</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 发票金额 -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            发票金额<span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-input" id="invoiceAmount" placeholder="系统自动计算" required disabled>
+                    </div>
+
+                    <!-- 发票抬头 -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            发票抬头<span class="required">*</span>
+                        </label>
+                        <input type="text" class="form-input" id="invoiceHeader" placeholder="企业工商认证名称" required>
+                    </div>
+
+                    <!-- 纳税人识别号 -->
+                    <div class="form-group" id="taxNumberGroup">
+                        <label class="form-label">
+                            纳税人识别号<span class="required" id="taxNumberRequired">*</span>
+                        </label>
+                        <input type="text" class="form-input" id="taxNumber" placeholder="请输入15位、17位、18位或20位纳税人识别号" required>
+                    </div>
+
+                    <!-- 更多信息展开区域 -->
+                    <div class="expandable-section">
+                        <button type="button" class="expand-trigger" onclick="toggleMoreInfo()">
+                            <span id="expandText">更多信息</span>
+                            <span id="expandIcon">ℹ️</span>
+                        </button>
+                        
+                        <div class="expand-content" id="moreInfoContent">
+                            <!-- 规格型号 -->
+                            <div class="form-group">
+                                <label class="form-label">规格型号</label>
+                                <input type="text" class="form-input" id="specification" placeholder="请填写产品规格型号">
+                            </div>
+
+                            <!-- 单位 -->
+                            <div class="form-group">
+                                <label class="form-label">单位</label>
+                                <input type="text" class="form-input" id="unit" placeholder="请填写计量单位">
+                            </div>
+
+                            <!-- 企业专用字段 -->
+                            <div id="enterpriseFields">
+                                <!-- 银行账号 -->
+                                <div class="form-group">
+                                    <label class="form-label">银行账号</label>
+                                    <input type="text" class="form-input" id="bankAccount" placeholder="请填写开户许可证上的银行账号">
+                                </div>
+
+                                <!-- 注册地址 -->
+                                <div class="form-group">
+                                    <label class="form-label">注册地址</label>
+                                    <input type="text" class="form-input" id="registeredAddress" placeholder="请填写营业执照上的注册地址">
+                                </div>
+
+                                <!-- 注册电话 -->
+                                <div class="form-group">
+                                    <label class="form-label">注册电话</label>
+                                    <input type="text" class="form-input" id="registeredPhone" placeholder="请填写企业注册电话">
+                                </div>
+                            </div>
+
+                            <!-- 开票方 -->
+                            <div class="form-group">
+                                <label class="form-label">开票方</label>
+                                <input type="text" class="form-input" id="invoiceIssuer" placeholder="请填写开票方信息">
+                            </div>
+
+                            <!-- 发票备注 -->
+                            <div class="form-group">
+                                <label class="form-label">发票备注</label>
+                                <textarea class="form-input" id="invoiceInfo" placeholder="请填写发票备注信息" rows="3" style="resize: vertical;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cancel" onclick="closeInvoiceModal()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitInvoice()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 专票认证提示弹窗 -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal" style="width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <span>⚠️</span>
+                    认证提示
+                </div>
+                <button class="modal-close" onclick="closeAuthModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: #595959; line-height: 1.6; margin: 0;">
+                    您需要前往"腾讯云"实名认证后才能在"腾讯云"开具增值税专用发票
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cancel" onclick="closeAuthModal()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="goToAuth()">去认证</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showOrderPage() {
+            document.getElementById('orderPage').style.display = 'block';
+            document.getElementById('invoicePage').style.display = 'none';
+            document.getElementById('invoiceRecordsPage').style.display = 'none';
+            
+            // 更新菜单状态
+            document.querySelectorAll('.submenu-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.submenu-item')[0].classList.add('active');
+        }
+
+        function showInvoicePage() {
+            document.getElementById('orderPage').style.display = 'none';
+            document.getElementById('invoicePage').style.display = 'block';
+            document.getElementById('invoiceRecordsPage').style.display = 'none';
+            
+            // 更新菜单状态
+            document.querySelectorAll('.submenu-item').forEach(item => item.classList.remove('active'));
+            document.querySelectorAll('.submenu-item')[1].classList.add('active');
+        }
+
+        function showInvoiceRecordsPage() {
+            document.getElementById('orderPage').style.display = 'none';
+            document.getElementById('invoicePage').style.display = 'none';
+            document.getElementById('invoiceRecordsPage').style.display = 'block';
+            
+            // 清除菜单选中状态，因为这是从发票管理页面的链接进入的
+            document.querySelectorAll('.submenu-item').forEach(item => item.classList.remove('active'));
+        }
+
+        // 返回发票管理页面
+        function backToInvoicePage() {
+            showInvoicePage();
+        }
+
+        function toggleMenuGroup(element) {
+            const menuGroup = element.parentElement;
+            const submenu = menuGroup.querySelector('.menu-submenu');
+            const arrow = element.querySelector('.menu-group-arrow');
+            
+            if (menuGroup.classList.contains('expanded')) {
+                menuGroup.classList.remove('expanded');
+                submenu.classList.remove('expanded');
+                submenu.classList.add('collapsed');
+            } else {
+                menuGroup.classList.add('expanded');
+                submenu.classList.remove('collapsed');
+                submenu.classList.add('expanded');
+            }
+        }
+
+        // 全选/取消全选功能
+        function toggleSelectAll() {
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+            
+            orderCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+            });
+            
+            updateSelection();
+        }
+
+        // 更新选择状态
+        function updateSelection() {
+            const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const selectedCount = document.getElementById('selectedCount');
+            const batchInvoiceBtn = document.getElementById('batchInvoiceBtn');
+            
+            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+            const totalBoxes = orderCheckboxes.length;
+            
+            // 更新全选状态
+            if (checkedBoxes.length === 0) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = false;
+            } else if (checkedBoxes.length === totalBoxes) {
+                selectAllCheckbox.indeterminate = false;
+                selectAllCheckbox.checked = true;
+            } else {
+                selectAllCheckbox.indeterminate = true;
+                selectAllCheckbox.checked = false;
+            }
+            
+            // 更新选择计数
+            selectedCount.textContent = `已选择 ${checkedBoxes.length} 项`;
+            
+            // 更新批量开发票按钮状态
+            if (checkedBoxes.length > 0) {
+                batchInvoiceBtn.disabled = false;
+                batchInvoiceBtn.textContent = `批量开发票 (${checkedBoxes.length})`;
+            } else {
+                batchInvoiceBtn.disabled = true;
+                batchInvoiceBtn.textContent = '批量开发票';
+            }
+        }
+
+        // 批量开发票功能
+        function batchInvoice() {
+            const checkedBoxes = document.querySelectorAll('.order-checkbox:checked');
+            const selectedOrders = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            if (selectedOrders.length === 0) {
+                alert('请先选择要开发票的订单');
+                return;
+            }
+            
+            // 显示发票弹窗
+            showInvoiceModal(selectedOrders);
+        }
+
+        // 显示开票记录
+        function showInvoiceRecords() {
+            showInvoiceRecordsPage();
+        }
+
+        // 申请合同
+        function applyContract() {
+            alert('跳转到合同申请页面');
+            console.log('申请合同');
+        }
+
+        // 单个订单开发票
+        function openInvoice(orderId) {
+            showInvoiceModal([orderId]);
+        }
+
+        // 去支付
+        function goPay(orderId) {
+            alert(`跳转到支付页面：${orderId}`);
+            console.log('去支付:', orderId);
+        }
+
+        // 取消订单
+        function cancelOrder(orderId) {
+            if (confirm(`确定要取消订单 ${orderId} 吗？`)) {
+                alert(`订单 ${orderId} 已取消`);
+                console.log('取消订单:', orderId);
+            }
+        }
+
+        // 重发发票
+        function resendInvoice(invoiceId) {
+            alert(`重发发票：${invoiceId}`);
+            console.log('重发发票:', invoiceId);
+        }
+
+        // 申请作废重开
+        function applyVoidReissue(invoiceId) {
+            if (confirm(`确定要申请作废重开发票 ${invoiceId} 吗？`)) {
+                alert(`已提交作废重开申请：${invoiceId}`);
+                console.log('申请作废重开:', invoiceId);
+            }
+        }
+
+        // 显示发票弹窗
+        function showInvoiceModal(orderIds = []) {
+            const modal = document.getElementById('invoiceModal');
+            modal.style.display = 'flex';
+            
+            // 存储当前要开票的订单ID
+            window.currentInvoiceOrders = orderIds;
+            
+            // 重置表单
+            document.getElementById('invoiceForm').reset();
+            document.getElementById('enterprise').checked = true;
+            toggleInvoiceType();
+            
+            // 计算并设置发票金额
+            calculateInvoiceAmount(orderIds);
+            
+            // 关闭更多信息展开区域
+            const moreInfoContent = document.getElementById('moreInfoContent');
+            const expandText = document.getElementById('expandText');
+            moreInfoContent.classList.remove('show');
+            expandText.textContent = '更多信息';
+        }
+
+        // 计算发票金额
+        function calculateInvoiceAmount(orderIds) {
+            // 模拟订单金额数据
+            const orderAmounts = {
+                'ORD-2026-001': 9999.00,
+                'ORD-2026-002': 4999.00,
+                'ORD-2026-003': 1999.00,
+                'ORD-2026-004': 19999.00,
+                'ORD-2026-005': 7999.00,
+                'ORD-2026-006': 29999.00,
+                'ORD-2026-007': 2999.00,
+                'ORD-2026-008': 11999.00
+            };
+            
+            let totalAmount = 0;
+            orderIds.forEach(orderId => {
+                if (orderAmounts[orderId]) {
+                    totalAmount += orderAmounts[orderId];
+                }
+            });
+            
+            document.getElementById('invoiceAmount').value = `¥${totalAmount.toLocaleString('zh-CN', {minimumFractionDigits: 2})}`;
+        }
+
+        // 检查专票选择
+        function checkSpecialInvoice() {
+            const specialRadio = document.getElementById('special');
+            if (specialRadio.checked) {
+                // 显示认证提示弹窗
+                document.getElementById('authModal').style.display = 'flex';
+                // 重置为普通发票
+                document.getElementById('general').checked = true;
+            }
+        }
+
+        // 关闭认证提示弹窗
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+        }
+
+        // 去认证
+        function goToAuth() {
+            alert('跳转到腾讯云实名认证页面');
+            closeAuthModal();
+            // 这里可以添加跳转到认证页面的逻辑
+        }
+
+        // 关闭发票弹窗
+        function closeInvoiceModal() {
+            const modal = document.getElementById('invoiceModal');
+            modal.style.display = 'none';
+        }
+
+        // 切换发票抬头类型
+        function toggleInvoiceType() {
+            const headerType = document.querySelector('input[name="headerType"]:checked').value;
+            const invoiceHeader = document.getElementById('invoiceHeader');
+            const taxNumber = document.getElementById('taxNumber');
+            const taxNumberGroup = document.getElementById('taxNumberGroup');
+            const taxNumberRequired = document.getElementById('taxNumberRequired');
+            const enterpriseFields = document.getElementById('enterpriseFields');
+            
+            switch(headerType) {
+                case 'personal':
+                    invoiceHeader.placeholder = '个人姓名';
+                    // 个人类型隐藏纳税人识别号字段
+                    taxNumberGroup.style.display = 'none';
+                    taxNumber.required = false;
+                    enterpriseFields.style.display = 'none';
+                    break;
+                case 'enterprise':
+                    invoiceHeader.placeholder = '企业工商认证名称';
+                    taxNumberGroup.style.display = 'block';
+                    taxNumber.placeholder = '请输入15位、17位、18位或20位纳税人识别号';
+                    taxNumber.required = true;
+                    taxNumberRequired.style.display = 'inline';
+                    enterpriseFields.style.display = 'block';
+                    break;
+                case 'organization':
+                    invoiceHeader.placeholder = '组织机构名称';
+                    taxNumberGroup.style.display = 'block';
+                    taxNumber.placeholder = '请输入组织机构代码或统一社会信用代码（选填）';
+                    taxNumber.required = false;
+                    taxNumberRequired.style.display = 'none';
+                    enterpriseFields.style.display = 'none';
+                    break;
+            }
+        }
+
+        // 切换更多信息展开状态
+        function toggleMoreInfo() {
+            const moreInfoContent = document.getElementById('moreInfoContent');
+            const expandText = document.getElementById('expandText');
+            
+            if (moreInfoContent.classList.contains('show')) {
+                moreInfoContent.classList.remove('show');
+                expandText.textContent = '更多信息';
+            } else {
+                moreInfoContent.classList.add('show');
+                expandText.textContent = '收起信息';
+            }
+        }
+
+        // 提交发票信息
+        function submitInvoice() {
+            const form = document.getElementById('invoiceForm');
+            const formData = new FormData(form);
+            
+            // 验证必填字段
+            const headerType = formData.get('headerType');
+            const invoiceType = formData.get('invoiceType');
+            const invoiceHeader = document.getElementById('invoiceHeader').value.trim();
+            const taxNumber = document.getElementById('taxNumber').value.trim();
+            const invoiceAmount = document.getElementById('invoiceAmount').value.trim();
+            
+            if (!invoiceHeader) {
+                alert('请填写发票抬头');
+                return;
+            }
+            
+            // 只有企业类型需要必填纳税人识别号
+            if (headerType === 'enterprise' && !taxNumber) {
+                alert('请填写纳税人识别号');
+                return;
+            }
+            
+            if (!invoiceAmount) {
+                alert('发票金额不能为空');
+                return;
+            }
+            
+            // 收集表单数据
+            const invoiceData = {
+                headerType: headerType,
+                invoiceType: invoiceType,
+                invoiceHeader: invoiceHeader,
+                taxNumber: taxNumber,
+                invoiceAmount: invoiceAmount,
+                specification: document.getElementById('specification').value.trim(),
+                unit: document.getElementById('unit').value.trim(),
+                bankAccount: document.getElementById('bankAccount').value.trim(),
+                registeredAddress: document.getElementById('registeredAddress').value.trim(),
+                registeredPhone: document.getElementById('registeredPhone').value.trim(),
+                invoiceIssuer: document.getElementById('invoiceIssuer').value.trim(),
+                invoiceInfo: document.getElementById('invoiceInfo').value.trim(),
+                orderIds: window.currentInvoiceOrders || []
+            };
+            
+            console.log('发票信息:', invoiceData);
+            
+            // 显示成功信息
+            const orderCount = invoiceData.orderIds.length;
+            const headerTypeText = headerType === 'personal' ? '个人' : (headerType === 'enterprise' ? '企业' : '组织');
+            const invoiceTypeText = invoiceType === 'general' ? '普通发票' : '专用发票';
+            
+            alert(`发票申请成功！\n抬头类型：${headerTypeText}\n发票类型：${invoiceTypeText}\n发票抬头：${invoiceHeader}\n发票金额：${invoiceAmount}\n订单数量：${orderCount}个`);
+            
+            // 关闭弹窗
+            closeInvoiceModal();
+            
+            // 清空选择
+            document.querySelectorAll('.order-checkbox:checked').forEach(cb => cb.checked = false);
+            document.getElementById('selectAll').checked = false;
+            updateSelection();
+        }
+
+        // 添加一些交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为按钮添加点击效果
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1)';
+                    }, 100);
+                });
+            });
+
+            // 为表格行添加悬停效果
+            document.querySelectorAll('.table tr').forEach(row => {
+                row.addEventListener('mouseenter', function() {
+                    this.style.backgroundColor = '#fafafa';
+                });
+                row.addEventListener('mouseleave', function() {
+                    this.style.backgroundColor = '';
+                });
+            });
+            
+            // 点击弹窗外部关闭弹窗
+            document.getElementById('invoiceModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeInvoiceModal();
+                }
+            });
+            
+            // 点击认证弹窗外部关闭弹窗
+            document.getElementById('authModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAuthModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
